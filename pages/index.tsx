@@ -5,7 +5,11 @@ import Head from "next/head";
 import styles from "../styles/Home.module.css";
 
 const Home: NextPage = () => {
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState<boolean>(false);
+  const [form, setForm] = useState<{ email: string; password: string }>({
+    email: "",
+    password: "",
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -13,13 +17,14 @@ const Home: NextPage = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(form);
     if (form.email && form.password) {
+      setLoading(true);
       const res = await signIn("credentials", {
         redirect: false,
         email: form.email,
         password: form.password,
       });
+      if (res?.status) setLoading(false);
       console.log(res);
     }
   };
@@ -32,6 +37,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <h1>NEXT AUTH TEST</h1>
+      {loading && <h1>Loading...</h1>}
       <form onSubmit={handleSubmit}>
         <input
           name="email"

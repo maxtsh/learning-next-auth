@@ -21,13 +21,10 @@ const auth = NextAuth({
         email: {
           label: "Email",
           type: "text",
-          placeholder: "email@yourhost.com",
         },
         password: { label: "Password", type: "password" },
       },
-      authorize: async (
-        credentials: Record<string, string> | undefined
-      ): Promise<UserType> => {
+      authorize: async (credentials): Promise<UserType> => {
         const req: Promise<UserType> = new Promise((res, rej) => {
           const user =
             credentials?.email === authUser.email &&
