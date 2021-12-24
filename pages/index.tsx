@@ -40,6 +40,16 @@ const Home: NextPage = () => {
     signOut();
   };
 
+  const handleRequest = async () => {
+    try {
+      const res = await fetch("/api/profile", { method: "GET" });
+      const data = await res.json();
+      console.log(data);
+    } catch (err: any) {
+      console.log(err?.message);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -86,6 +96,10 @@ const Home: NextPage = () => {
           Logout
         </button>
       )}
+
+      <div style={{ marginTop: "2rem" }}>
+        <button onClick={handleRequest}>Request to protected route</button>
+      </div>
     </div>
   );
 };
