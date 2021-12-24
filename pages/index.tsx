@@ -1,18 +1,18 @@
 import { useState } from "react";
+import { useRouter, NextRouter } from "next/router";
 import type { NextPage } from "next";
 import { signIn, signOut, useSession } from "next-auth/react";
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
 
 const Home: NextPage = () => {
+  const { replace }: NextRouter = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
-  const { data, status } = useSession();
+  const { data, status } = useSession(); // this is client side authentication check
   const [form, setForm] = useState<{ email: string; password: string }>({
     email: "",
     password: "",
   });
-
-  console.log({ data }, { status });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -23,12 +23,11 @@ const Home: NextPage = () => {
     if (form.email && form.password) {
       setLoading(true);
       try {
-        const res = await signIn("credentials", {
+        await signIn("credentials", {
           redirect: false,
           email: form.email,
           password: form.password,
         });
-        console.log(res);
       } catch (err) {
         console.log(err);
       } finally {
