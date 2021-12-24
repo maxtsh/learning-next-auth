@@ -1,11 +1,14 @@
 import { useState } from "react";
+import { useRouter, NextRouter } from "next/router";
 import type { NextPage } from "next";
-import { signIn } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
 
 const Home: NextPage = () => {
+  const { replace }: NextRouter = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
+  const { data, status } = useSession(); // this is client side authentication check
   const [form, setForm] = useState<{ email: string; password: string }>({
     email: "",
     password: "",
@@ -19,13 +22,31 @@ const Home: NextPage = () => {
     e.preventDefault();
     if (form.email && form.password) {
       setLoading(true);
-      const res = await signIn("credentials", {
-        redirect: false,
-        email: form.email,
-        password: form.password,
-      });
-      if (res?.status) setLoading(false);
-      console.log(res);
+      try {
+        await signIn("credentials", {
+          redirect: false,
+          email: form.email,
+          password: form.password,
+        });
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    signOut();
+  };
+
+  const handleRequest = async () => {
+    try {
+      const res = await fetch("/api/profile", { method: "GET" });
+      const data = await res.json();
+      console.log(data);
+    } catch (err: any) {
+      console.log(err?.message);
     }
   };
 
@@ -37,22 +58,48 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <h1>NEXT AUTH TEST</h1>
+      <h5>
+        Your login status is:
+        <span
+          style={{
+            fontSize: "120%",
+            fontWeight: "700",
+            marginLeft: "0.25rem",
+            padding: "0.5rem",
+            borderRadius: "12px",
+            color: "#fff",
+            backgroundColor: status === "unauthenticated" ? "red" : "green",
+          }}
+        >
+          {status}
+        </span>
+      </h5>
       {loading && <h1>Loading...</h1>}
-      <form onSubmit={handleSubmit}>
-        <input
-          name="email"
-          type="email"
-          value={form.email}
-          onChange={handleChange}
-        />
-        <input
-          name="password"
-          type="password"
-          value={form.password}
-          onChange={handleChange}
-        />
-        <button type="submit">Login</button>
-      </form>
+      {!data?.user ? (
+        <form onSubmit={handleSubmit}>
+          <input
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+          />
+          <input
+            name="password"
+            type="password"
+            value={form.password}
+            onChange={handleChange}
+          />
+          <button type="submit">Login</button>
+        </form>
+      ) : (
+        <button onClick={handleLogout} type="button">
+          Logout
+        </button>
+      )}
+
+      <div style={{ marginTop: "2rem" }}>
+        <button onClick={handleRequest}>Request to protected route</button>
+      </div>
     </div>
   );
 };
